@@ -2,7 +2,7 @@
 
 set -euf -o pipefail 
 
-deploy_dir="./content"
+deploy_dir=${1:-./content}
 
 # Source material
 puppetfile_repo_url="git@github.com:rmacduff/puppetfiles.git"
