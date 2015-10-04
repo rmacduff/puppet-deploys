@@ -17,7 +17,7 @@ update_content() {
     fi
 }
 
-mkdir -p $deploy_dir 
+[[ ! -d $deploy_dir ]] && mkdir -p $deploy_dir 
 pushd $deploy_dir
 
 # Pull in upstream content
