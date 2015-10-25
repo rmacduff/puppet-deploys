@@ -1,0 +1,38 @@
+---
+- hosts: all
+  user: root
+  vars:
+    - puppet_deploy_dir: /root/puppet
+    - puppetfile_repo_url: git@github.com:rmacduff/puppetfiles.git
+    - puppet_manifests_repo_url: git@bitbucket.org:rmacduff/puppet-manifests.git
+    - hiera_repo_url: git@bitbucket.org:rmacduff/hiera-private.git
+  tasks:
+    - name: install puppetlabs yum repo
+      yum: name=http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm state=present
+    
+    - name: install puppet from puppetlabs
+      yum: name=puppet state=present
+
+    - name: install git
+      yum: name=git state=present
+
+    - name: install r10k gem
+      gem: name=r10k state=present user_install=no
+
+    - name: make puppet deploy directory
+      file: path={{ puppet_deploy_dir }} state=directory mode=750
+      
+    - name: fetch puppet sync script
+      git: repo=ssh://git@github.com/rmacduff/puppet-deploys.git
+           dest="{{ puppet_deploy_dir }}/puppet-deploys"
+           accept_hostkey=yes
+
+    - name: run puppet fetch script
+      shell: "{{ puppet_deploy_dir }}/puppet-deploys/sync-puppet-content.sh {{ puppet_deploy_dir }}"
+ 
+    - name: run puppet
+      shell: puppet apply --debug --hiera_config hiera/hiera.yaml --modulepath modules/ manifests/site.pp
+      args:
+        chdir: "{{ puppet_deploy_dir }}"
+      register: puppet_apply
+    - debug: var=puppet_apply.stdout_lines
